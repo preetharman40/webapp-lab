@@ -1,0 +1,187 @@
+# =============================================================================
+#  webapp-secret-lab — .gitignore
+#
+#  Rule of thumb for this repo:
+#    COMMIT   pointers & definitions (ExternalSecret, SecretStore, Kustomize,
+#             Helm values, IAM policy *templates*)
+#    IGNORE   anything holding a real value (AWS keys, kubeconfigs, rendered
+#             manifests, terraform state, .env files, decoded Secrets)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. AWS credentials & anything that carries an access key
+# -----------------------------------------------------------------------------
+.secrets/
+.credentials/
+credentials
+credentials.*
+*.creds
+*.credentials
+*accesskey*
+*access-key*
+*secret-access-key*
+aws-creds*
+.aws/
+aws/credentials
+aws/config
+*.pem
+*.p12
+*.pfx
+*.key
+*.keystore
+# IAM Roles Anywhere / client certs, if you get that far
+*.crt
+*.csr
+!**/ca-public*.crt
+
+# -----------------------------------------------------------------------------
+# 2. Rendered IAM policies (templates stay, rendered copies with your real
+#    account ID go away)
+# -----------------------------------------------------------------------------
+aws/policy-*.json
+aws/*-rendered.json
+aws/out/
+iam/policy-*.json
+!**/*.json.tmpl
+!**/*.json.template
+!**/*.example.json
+
+# -----------------------------------------------------------------------------
+# 3. Kubernetes access & anything dumped out of the cluster
+# -----------------------------------------------------------------------------
+kubeconfig
+kubeconfig*
+*.kubeconfig
+*-kubeconfig.yaml
+.kube/
+# `kubectl get secret -o yaml > x.yaml` — base64 is NOT encryption
+*secret*.decoded.yaml
+*-secret-values.yaml
+*-secret-data.yaml
+secret-dump*.yaml
+decoded/
+dump/
+
+#   re-include the lab manifests that are SAFE and must be versioned:
+#   they are pointers to AWS, they contain no secret material
+!app/base/externalsecret.yaml
+!**/externalsecret*.yaml
+!**/external-secret*.yaml
+!platform/dev/secretstore.yaml
+!platform/prod/secretstore.yaml
+!**/secretstore*.yaml
+!**/clustersecretstore*.yaml
+!**/pushsecret*.yaml
+
+# -----------------------------------------------------------------------------
+# 4. Kustomize / Helm build output (rendered manifests can inline real values)
+# -----------------------------------------------------------------------------
+rendered/
+manifests-out/
+build/
+dist/
+*.rendered.yaml
+kustomize-output*.yaml
+charts/
+Chart.lock
+*.tgz
+#   helm values holding secrets; keep the committed platform/eso-values.yaml
+*values-secret*.yaml
+*secrets.values.yaml
+!platform/eso-values.yaml
+
+# -----------------------------------------------------------------------------
+# 5. Terraform / OpenTofu (state files store secret values in PLAINTEXT)
+# -----------------------------------------------------------------------------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+!*.tfvars.example
+
+# -----------------------------------------------------------------------------
+# 6. Local environment & shell scratch
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.sample
+lab.env
+*.local
+*.local.yaml
+local/
+scratch/
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+*.swp
+*.out
+*.log
+
+# -----------------------------------------------------------------------------
+# 7. Python app (app/base/app.py)
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+.Python
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+pip-log.txt
+
+# -----------------------------------------------------------------------------
+# 8. Container build noise
+# -----------------------------------------------------------------------------
+.docker/
+docker-compose.override.yml
+*.docker.env
+
+# -----------------------------------------------------------------------------
+# 9. Sealed Secrets / SOPS / age  (the INPUT is secret, the OUTPUT is safe)
+# -----------------------------------------------------------------------------
+*-unsealed.yaml
+*.unsealed.yaml
+*-plain.yaml
+sealing-key*.yaml
+master.key
+*.agekey
+.sops.yaml.local
+#   sealed output + public cert are safe to commit
+!*sealedsecret*.yaml
+!*-sealed.yaml
+!sealed-secrets-cert.pem
+
+# -----------------------------------------------------------------------------
+# 10. Editors & OS
+# -----------------------------------------------------------------------------
+.vscode/
+!.vscode/settings.json.example
+.idea/
+*.iml
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
+*~
+.direnv/
+.envrc
